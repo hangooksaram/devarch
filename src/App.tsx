@@ -1,27 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import useSearchQuery from './queries/useSearchQuery';
-
-type HelperType = 'multiple' | 'single';
-interface HelperContent {
-  type: HelperType;
-  content: (a: string, b?: string) => string;
-}
-
-const helperContentList: HelperContent[] = [
-  { type: 'multiple', content: (a, b) => `What is difference between ${a} and ${b}?` },
-  { type: 'multiple', content: (a, b) => `${a} vs ${b} which is better?` },
-  { type: 'single', content: (a) => `${a} best practices` },
-  { type: 'single', content: (a) => `What is advantage of ${a}?` },
-  { type: 'single', content: (a) => `What is disadvantage of ${a}?` },
-  { type: 'single', content: (a) => `Best ${a} 2024` },
-  { type: 'single', content: (a) => `Top 10 ${a} 2024` },
-];
+import { searchHelperContentList } from './searchHelper/searchHelperContentList';
+import useSearchHelper from './searchHelper/useSearchHelper';
 
 function App() {
-  const [firstSearchText, setFirstSearchText] = useState<string | null>(null);
-  const [secondSearchText, setSecondSearchText] = useState<string | null>(null);
-  const [finalSearchText, setFinalSearchText] = useState<string | null>(null);
-  const [currentHelperContentType, setCurrentHelperContentType] = useState<HelperType | null>('single');
+  const {
+    finalSearchText,
+    firstSearchText,
+    secondSearchText,
+    setFirstSearchText,
+    setSecondSearchText,
+    currentSearchHelperContentType,
+    setCurrentSearchHelperContentType,
+    setCombinateWithSearchHelperContent,
+  } = useSearchHelper();
+
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [searchButtonClicked, setSearchButtonClicked] = useState(0);
   const { searchResults, isSuccess, totalPageCount } = useSearchQuery(
@@ -30,21 +23,6 @@ function App() {
     currentPage,
     10,
   );
-
-  const setCombinateWithHelperContent = (type: string, content: Function) => {
-    let finalHelperContent;
-    if (type === 'multiple') {
-      finalHelperContent = content(firstSearchText!, secondSearchText!);
-    } else finalHelperContent = content(firstSearchText!);
-
-    setFinalSearchText(finalHelperContent);
-  };
-
-  useEffect(() => {
-    if (currentHelperContentType !== 'multiple') {
-      setFinalSearchText(firstSearchText);
-    }
-  }, [firstSearchText, secondSearchText]);
 
   useEffect(() => {
     console.log(searchResults);
@@ -63,7 +41,7 @@ function App() {
         <input
           value={secondSearchText!}
           onChange={(e) => setSecondSearchText(e.target.value)}
-          disabled={currentHelperContentType === 'single'}
+          disabled={currentSearchHelperContentType === 'single'}
         />
       </div>
 
@@ -83,19 +61,21 @@ function App() {
           ))}
         </>
       )}
-      <button onClick={() => setCurrentHelperContentType((prev) => (prev === 'multiple' ? 'single' : 'multiple'))}>
-        {currentHelperContentType === 'multiple' ? '단일' : '다수'}
+      <button
+        onClick={() => setCurrentSearchHelperContentType((prev) => (prev === 'multiple' ? 'single' : 'multiple'))}
+      >
+        {currentSearchHelperContentType === 'multiple' ? '단일' : '다수'}
       </button>
       <div style={{ display: 'flex' }}>
-        {helperContentList.map(({ type, content }, index) => (
+        {searchHelperContentList.map(({ type, content }, index) => (
           <button
             onClick={() => {
-              setCombinateWithHelperContent(type, content);
+              setCombinateWithSearchHelperContent(type, content);
             }}
             key={index}
             disabled={
               typeof finalSearchText !== 'string' ||
-              (typeof finalSearchText === 'string' && type !== currentHelperContentType)
+              (typeof finalSearchText === 'string' && type !== currentSearchHelperContentType)
             }
           >
             {content('A', 'B')}
