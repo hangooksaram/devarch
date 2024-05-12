@@ -1,39 +1,64 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
+import { SearchHelper, SearchHelperContent, SearchHelperContentType, SearchText } from './searchHelper';
+
+interface SearchTextAction {
+  type: 'addFirst' | 'addSecond' | 'setFinal';
+  first?: string;
+  second?: string;
+  final?: string;
+}
+
+const searchTextReducer = (searchHelper: SearchText, action: SearchTextAction) => {
+  switch (action.type) {
+    case 'addFirst': {
+      return {
+        ...searchHelper,
+        first: action.first,
+      };
+    }
+    case 'addSecond': {
+      return {
+        ...searchHelper,
+        second: action.second,
+      };
+    }
+    case 'setFinal': {
+      return {
+        ...searchHelper,
+        final: action.final,
+      };
+    }
+  }
+};
 
 const useSearchHelper = () => {
-  const [firstSearchText, setFirstSearchText] = useState<string | null>(null);
-  const [secondSearchText, setSecondSearchText] = useState<string | null>(null);
-  const [finalSearchText, setFinalSearchText] = useState<string | null>(null);
+  const [searchText, dispatch] = useReducer(searchTextReducer, { first: '', second: '', final: '' });
 
-  const [currentSearchHelperContentType, setCurrentSearchHelperContentType] = useState<SearchHelperType | null>(
+  const [currentSearchHelperContentType, setCurrentSearchHelperContentType] = useState<SearchHelperContentType | null>(
     'single',
   );
 
   useEffect(() => {
     if (currentSearchHelperContentType !== 'multiple') {
-      setFinalSearchText(firstSearchText);
+      dispatch({ type: 'setFinal', first: searchText.first! });
     }
-  }, [firstSearchText, secondSearchText]);
+  }, [searchText.first, searchText.second]);
 
   const setCombinateWithSearchHelperContent = (type: string, content: Function) => {
     let finalSearchHelperContent;
     if (type === 'multiple') {
-      finalSearchHelperContent = content(firstSearchText!, secondSearchText!);
-    } else finalSearchHelperContent = content(firstSearchText!);
+      finalSearchHelperContent = content(searchText.first!, searchText.second!);
+    } else finalSearchHelperContent = content(searchText.first!);
 
-    setFinalSearchText(finalSearchHelperContent);
+    dispatch({ type: 'setFinal', final: finalSearchHelperContent });
   };
 
   return {
-    firstSearchText,
-    setFirstSearchText,
-    setFinalSearchText,
-    secondSearchText,
-    setSecondSearchText,
-    finalSearchText,
     currentSearchHelperContentType,
     setCurrentSearchHelperContentType,
     setCombinateWithSearchHelperContent,
+    searchText,
+    dispatch,
   };
 };
 

@@ -1,6 +1,19 @@
-type SearchHelperType = 'multiple' | 'single';
+export type SearchHelperContentType = 'multiple' | 'single';
 
-interface SearchHelperContent {
-  type: SearchHelperType;
+export interface SearchHelper {
+    searchText : SearchText,
+    helperContent : SearchHelperContent
+}
+
+export interface SearchHelperContent {
+  type: SearchHelperContentType;
   content: (a: string, b?: string) => string;
 }
+
+
+export interface SearchText {
+    first?:string;
+    second?:string;
+    final?:string;
+}
+

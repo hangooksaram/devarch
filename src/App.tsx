@@ -5,21 +5,18 @@ import useSearchHelper from './searchHelper/useSearchHelper';
 
 function App() {
   const {
-    finalSearchText,
-    firstSearchText,
-    secondSearchText,
-    setFirstSearchText,
-    setSecondSearchText,
     currentSearchHelperContentType,
     setCurrentSearchHelperContentType,
     setCombinateWithSearchHelperContent,
+    searchText,
+    dispatch,
   } = useSearchHelper();
 
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [searchButtonClicked, setSearchButtonClicked] = useState(0);
   const { searchResults, isSuccess, totalPageCount } = useSearchQuery(
     searchButtonClicked,
-    finalSearchText!,
+    searchText.final!,
     currentPage,
     10,
   );
@@ -33,17 +30,54 @@ function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div>
-        첫번째 입력:
-        <input value={firstSearchText!} onChange={(e) => setFirstSearchText(e.target.value)} />
+        첫번째 검색어 :
+        <input value={searchText.first!} onChange={(e) => dispatch({ type: 'addFirst', first: e.target.value })} />
       </div>
       <div>
-        두번째 입력:
+        두번째 검색어 :
         <input
-          value={secondSearchText!}
-          onChange={(e) => setSecondSearchText(e.target.value)}
+          value={searchText.second!}
+          onChange={(e) => dispatch({ type: 'addSecond', second: e.target.value })}
           disabled={currentSearchHelperContentType === 'single'}
         />
       </div>
+      <div>최종 검색어 : {searchText.final}</div>
+
+      <div style={{ display: 'flex' }}>
+        <div>검색어 타입 : </div>
+        <button
+          onClick={() => setCurrentSearchHelperContentType((prev) => (prev === 'multiple' ? 'single' : 'multiple'))}
+        >
+          {currentSearchHelperContentType === 'multiple' ? '단일' : '다수'}
+        </button>
+      </div>
+      <div style={{ display: 'flex' }}>
+        <div>검색 헬퍼 : </div>
+        {searchHelperContentList.map(({ type, content }, index) => (
+          <button
+            onClick={() => {
+              setCombinateWithSearchHelperContent(type, content);
+            }}
+            key={index}
+            disabled={
+              typeof searchText.final !== 'string' ||
+              (typeof searchText.final === 'string' && type !== currentSearchHelperContentType)
+            }
+          >
+            {content('A', 'B')}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() => {
+          setSearchButtonClicked((prev) => prev + 1);
+        }}
+        disabled={typeof searchText.final !== 'string'}
+        style={{ marginTop: '16px' }}
+      >
+        검색
+      </button>
 
       {isSuccess && (
         <>
@@ -61,37 +95,6 @@ function App() {
           ))}
         </>
       )}
-      <button
-        onClick={() => setCurrentSearchHelperContentType((prev) => (prev === 'multiple' ? 'single' : 'multiple'))}
-      >
-        {currentSearchHelperContentType === 'multiple' ? '단일' : '다수'}
-      </button>
-      <div style={{ display: 'flex' }}>
-        {searchHelperContentList.map(({ type, content }, index) => (
-          <button
-            onClick={() => {
-              setCombinateWithSearchHelperContent(type, content);
-            }}
-            key={index}
-            disabled={
-              typeof finalSearchText !== 'string' ||
-              (typeof finalSearchText === 'string' && type !== currentSearchHelperContentType)
-            }
-          >
-            {content('A', 'B')}
-          </button>
-        ))}
-      </div>
-      {finalSearchText}
-
-      <button
-        onClick={() => {
-          setSearchButtonClicked((prev) => prev + 1);
-        }}
-        disabled={typeof finalSearchText !== 'string'}
-      >
-        검색
-      </button>
     </div>
   );
 }
